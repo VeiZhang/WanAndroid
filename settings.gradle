@@ -1,2 +1,6 @@
-include ':app'
 rootProject.name = "WanAndroid"
+
+include ':app'
+project(':app').projectDir = new File(rootDir, 'Apps/app')
+
+apply from: new File(rootDir, '/core/AppConfig/settings.gradle')
