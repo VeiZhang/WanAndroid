@@ -1,14 +1,31 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+apply from: new File(rootDir, '/core/AppConfig/config.gradle')
+
+ext {
+    GITHUB_USER = 'VeiZhang'
+    GITHUB_READ_TOKEN = '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'
+}
+
 buildscript {
     ext.kotlin_version = "1.3.72"
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+        maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/releases"
+        }
+        maven() {
+            url 'https://maven.aliyun.com/repository/releases'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/public'
+        }
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.1.3"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
+        classpath 'com.tencent.bugly:symtabfileuploader:2.2.1'
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.0.0"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -16,11 +33,56 @@ buildscript {
 
 allprojects {
     repositories {
+        /** Github packages **/
+        maven {
+            url = "https://maven.pkg.github.com/VeiZhang/GitHubPackages-Android"
+            credentials {
+                // 输入自己的账号和个人令牌（需要 read packages权限）
+                // 可放项目根目录的gradle.properties 或者 local.properties中
+                username = (getPropertyValue("GITHUB_USER") ?: project.properties['GITHUB_USER'])
+                password = (getPropertyValue("GITHUB_READ_TOKEN") ?: project.properties['GITHUB_READ_TOKEN'])
+            }
+        }
+        maven {
+            url = "https://maven.pkg.github.com/VeiZhang/GitHubPackagesPrivate-Android"
+            credentials {
+                // 仅供私人账号和个人令牌（需要 read packages权限）
+                // 可放项目根目录的gradle.properties 或者 local.properties中
+                username = (getPropertyValue("GITHUB_USER") ?: project.properties['GITHUB_USER'])
+                password = (getPropertyValue("GITHUB_READ_TOKEN") ?: project.properties['GITHUB_READ_TOKEN'])
+            }
+        }
+
         google()
-        jcenter()
+        mavenCentral()
+        maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/releases"
+        }
+        maven() {
+            url 'https://maven.aliyun.com/repository/releases'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/public'
+        }
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+def getPropertyValue(String key) {
+    if (key == null || key.length() == 0)
+        return null
+
+    File file = project.rootProject.file('local.properties')
+    if (!file.exists())
+        return null
+
+    InputStream inputStream = file.newDataInputStream()
+    Properties properties = new Properties()
+    properties.load(inputStream)
+
+    //读取Key
+    return properties.getProperty(key)
 }
